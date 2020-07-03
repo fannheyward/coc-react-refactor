@@ -1,8 +1,10 @@
 import traverse, { NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import { commands, workspace } from 'coc.nvim';
+import { commands, Uri, workspace } from 'coc.nvim';
+import * as fs from 'fs';
 import LinesAndColumns from 'lines-and-columns';
-import { Position, Range, TextEdit } from 'vscode-languageserver-protocol';
+import * as path from 'path';
+import { CreateFile, Position, Range, TextDocumentEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver-protocol';
 import {
   codeFromNode,
   codeToAst,
@@ -25,6 +27,7 @@ export const extractToFunction = async () => {
     if (!name) return;
 
     const doc = await workspace.document;
+    if (!doc) return;
     const mode = await workspace.nvim.call('visualmode');
     const range = await workspace.getSelectedRange(mode, doc);
     if (!range) return;
@@ -50,97 +53,61 @@ export const extractToFunction = async () => {
   }
 };
 
+const fileTypeMap = {
+  javascript: '.js',
+  typescript: '.ts',
+  javascriptreact: '.jsx',
+  typescriptreact: '.tsx',
+};
+
 /**
  * Extract code to file action
  */
-// export const extractToFile = async () => {
-//   try {
-//     const result = await extractAndReplaceSelection(true);
-//     const document = editor.document;
-//     const doc = await workspace.document;
+export const extractToFile = async () => {
+  try {
+    const name = await askForName();
+    if (!name) return;
 
-//     const documentDir = path.dirname(editor.document.fileName);
-//     const watcher = workspace.createFileSystemWatcher(path.join(documentDir, '*.{js,jsx,ts,tsx}'));
+    const doc = await workspace.document;
+    if (!doc) return;
+    const documentDir = path.dirname(Uri.parse(doc.uri).fsPath);
+    const newFilePath = path.join(documentDir, name + fileTypeMap[doc.filetype]);
+    if (fs.existsSync(newFilePath)) {
+      workspace.showMessage(`${newFilePath} exists`, 'error');
+      return;
+    }
 
-//     const disposable = watcher.onDidCreate(async (uri) => {
-//       disposable.dispose();
-//       // TODO
-//       await commands.executeCommand('editor.action.formatDocument');
-//       await workspace.jumpTo(uri.toString());
-//       await commands.executeCommand('editor.action.formatDocument');
+    const mode = await workspace.nvim.call('visualmode');
+    const range = await workspace.getSelectedRange(mode, doc);
+    if (!range) return;
 
-//       ensureReactIsImported(vscode.window.activeTextEditor);
-//     });
+    const documentText = doc.textDocument.getText();
+    const [start, end] = getIndexesForSelection(documentText, range);
+    const result = executeCodeAction(name, documentText, start, end, true);
+    if (!result) {
+      workspace.showMessage(`Extract to file failed`, 'error');
+      return;
+    }
 
-//     const insertPos = document.positionAt(result.insertAt);
-//     const cmpLines = result.componentCode.split(/\n/).length;
+    const newFileUri = Uri.parse(newFilePath).toString();
+    const createFile = CreateFile.create(newFileUri);
+    const replaceEdit = TextDocumentEdit.create(doc.textDocument, [TextEdit.replace(range, result.replaceJSXCode)]);
+    const edit: WorkspaceEdit = {
+      documentChanges: [createFile, replaceEdit],
+    };
+    await workspace.applyEdit(edit);
 
-//     const start = new vscode.Position(insertPos.line, 0);
-//     const end = new vscode.Position(insertPos.line + cmpLines, 0);
-//     const selection = new vscode.Selection(start, end);
+    const newDoc = await workspace.loadFile(newFileUri);
+    await workspace.jumpTo(newFileUri);
+    await newDoc.applyEdits([TextEdit.insert(Position.create(0, 0), result.componentCode)]);
+    await commands.executeCommand('editor.action.format');
 
-//     await executeMoveToNewFileCodeAction(editor.document, selection);
-//   } catch (error) {
-//     vscode.window.showErrorMessage(error);
-//   }
-// };
-
-/**
- * Check if code action is available
- *
- * @param code
- */
-export const isCodeActionAvailable = (code: string): boolean => {
-  return isJSX(code);
+    ensureReactIsImported();
+  } catch (error) {
+    console.error(`Extract to file:`, error);
+    workspace.showMessage(`Extract to file failed`, 'error');
+  }
 };
-
-/**
- * Extract selected JSX to a new React component
- *
- * @param editor
- * @param produceClass
- */
-const extractAndReplaceSelection = async (produceClass = false): Promise<RefactorResult | undefined> => {
-  const name = await askForName();
-  if (!name) return;
-
-  const doc = await workspace.document;
-  const mode = await workspace.nvim.call('visualmode');
-  const range = await workspace.getSelectedRange(mode, doc);
-  if (!range) return;
-
-  const documentText = doc.textDocument.getText();
-
-  const [start, end] = getIndexesForSelection(documentText, range);
-  const result = executeCodeAction(name, documentText, start, end, produceClass);
-
-  const edits: TextEdit[] = [
-    TextEdit.replace(range, result.replaceJSXCode),
-    TextEdit.insert(Position.create(result.insertAt, 0), result.componentCode + '\n\n'),
-  ];
-
-  await doc.applyEdits(edits);
-
-  return result;
-};
-
-/**
- * Execute otb code action provided by TypeScript language server
- *
- * @param document
- * @param rangeOrSelection
- */
-// const executeMoveToNewFileCodeAction = (document: TextDocument, rangeOrSelection: vscode.Range | vscode.Selection) => {
-//   const codeAction = 'Move to a new file';
-//   return vscode.commands.executeCommand(
-//     '_typescript.applyRefactoring',
-//     document,
-//     document.fileName,
-//     codeAction,
-//     codeAction,
-//     rangeOrSelection
-//   );
-// };
 
 /**
  * Get start and end index of selection or range
@@ -167,23 +134,22 @@ const getIndexesForSelection = (documentText: string, selectionOrRange: Range): 
  *
  * @param editor
  */
-// const ensureReactIsImported = (editor: vscode.TextEditor) => {
-//   const ast = codeToAst(editor.document.getText());
-//   let matched;
-//   traverse(ast, {
-//     ImportDeclaration(path) {
-//       if (path.node.source.value === 'react') {
-//         matched = true;
-//         path.stop();
-//       }
-//     },
-//   });
-//   if (!matched) {
-//     editor.edit((edit) => {
-//       edit.insert(new vscode.Position(0, 0), 'import React from "react";\n');
-//     });
-//   }
-// };
+const ensureReactIsImported = async () => {
+  const doc = await workspace.document;
+  const ast = codeToAst(doc.textDocument.getText());
+  let matched = false;
+  traverse(ast, {
+    ImportDeclaration(path: any) {
+      if (path.node.source.value === 'react') {
+        matched = true;
+        path.stop();
+      }
+    },
+  });
+  if (!matched) {
+    await doc.applyEdits([TextEdit.insert(Position.create(0, 0), 'import React from "react";\n')]);
+  }
+};
 
 /**
  * Extraction Result Type
