@@ -24,7 +24,8 @@ export const extractToFunction = async () => {
     await extractAndReplaceSelection();
     // TODO format
   } catch (error) {
-    console.error(error);
+    console.error('Extract JSX to function:', error);
+    workspace.showMessage('Extract JSX to function failed', 'error');
   }
 };
 

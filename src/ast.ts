@@ -39,17 +39,22 @@ export const codeFromNode = (node) => {
 };
 
 export const isOuterMemberExpression = (path) =>
-  path.isMemberExpression() && !isArrayFunctionCall(path) && (!path.parentPath.isMemberExpression() || isArrayFunctionCall(path.parentPath));
+  path.isMemberExpression() &&
+  !isArrayFunctionCall(path) &&
+  (!path.parentPath.isMemberExpression() || isArrayFunctionCall(path.parentPath));
 
 export const findOuterMemberExpression = (path) => path.findParent(isOuterMemberExpression) || path;
 
-export const isArrayFunctionCall = (path) => path.key === 'callee' && ['map', 'filter', 'reduce'].indexOf(path.node.property.name) > -1;
+export const isArrayFunctionCall = (path) =>
+  path.key === 'callee' && ['map', 'filter', 'reduce'].indexOf(path.node.property.name) > -1;
 
 export const isFunctionBinding = (path) => path.key === 'callee' && path.node.property.name === 'bind';
 
-export const isPathInRange = (start: number, end: number) => (path: NodePath) => path.node.start >= start && path.node.end <= end;
+export const isPathInRange = (start: number, end: number) => (path: NodePath) =>
+  path.node.start >= start && path.node.end <= end;
 
-export const isClassMemberExpression = ({ node }) => t.isMemberExpression(node) && (t.isThisExpression(node.object) || isClassMemberExpression({ node: node.object }));
+export const isClassMemberExpression = ({ node }) =>
+  t.isMemberExpression(node) && (t.isThisExpression(node.object) || isClassMemberExpression({ node: node.object }));
 
 export const isPathRemoved = (path) => (path.findParent((path) => path.removed) ? true : false);
 
@@ -62,7 +67,6 @@ export const getReferencePaths = (scope, node) => {
 };
 
 export const getVariableReferences = (scope, declaration) => {
-  // FIXME any
   const refs: any[] = [];
   if (t.isIdentifier(declaration)) {
     getReferencePaths(scope, declaration).forEach((path) => {
@@ -74,7 +78,9 @@ export const getVariableReferences = (scope, declaration) => {
     let nodes;
 
     if (t.isObjectPattern(declaration)) {
-      nodes = declaration.properties.map((property: any) => (t.isRestElement(property) ? property.argument : property.value));
+      nodes = declaration.properties.map((property: any) =>
+        t.isRestElement(property) ? property.argument : property.value
+      );
     } else if (t.isArrayPattern(declaration)) {
       nodes = declaration.elements.map((id: any) => (t.isRestElement(id) ? id.argument : id));
     }

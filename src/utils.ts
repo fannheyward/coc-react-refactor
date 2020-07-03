@@ -1,6 +1,6 @@
 import { workspace } from 'coc.nvim';
 
-const capitalizeFirstLetter = (string) => string.charAt(0).toUpperCase() + string.slice(1);
+const capitalizeFirstLetter = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
 
 const normalizeComponentName = (name: string) =>
   name
