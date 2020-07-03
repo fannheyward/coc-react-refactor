@@ -92,8 +92,11 @@ export const extractToFile = async () => {
     const newFileUri = Uri.parse(newFilePath).toString();
     const createFile = CreateFile.create(newFileUri);
     const replaceEdit = TextDocumentEdit.create(doc.textDocument, [TextEdit.replace(range, result.replaceJSXCode)]);
+    const importEdit = TextDocumentEdit.create(doc.textDocument, [
+      TextEdit.insert(Position.create(0, 0), `import { ${name} } from './${name}';\n`),
+    ]);
     const edit: WorkspaceEdit = {
-      documentChanges: [createFile, replaceEdit],
+      documentChanges: [createFile, replaceEdit, importEdit],
     };
     await workspace.applyEdit(edit);
 

@@ -16,7 +16,7 @@ export const askForName = async () => {
 };
 
 export const generateClassComponent = (name: string, renderCode: string): string => `
-class ${name} extends React.Component {
+export class ${name} extends React.Component {
     constructor(props) {
         super(props);
     }
