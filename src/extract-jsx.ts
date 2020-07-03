@@ -1,6 +1,6 @@
 import traverse, { NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import { workspace } from 'coc.nvim';
+import { commands, workspace } from 'coc.nvim';
 import LinesAndColumns from 'lines-and-columns';
 import { Position, Range, TextEdit } from 'vscode-languageserver-protocol';
 import {
@@ -22,7 +22,7 @@ import pickBy = require('lodash.pickby');
 export const extractToFunction = async () => {
   try {
     await extractAndReplaceSelection();
-    // TODO format
+    await commands.executeCommand('editor.action.format');
   } catch (error) {
     console.error('Extract JSX to function:', error);
     workspace.showMessage('Extract JSX to function failed', 'error');
