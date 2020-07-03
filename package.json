@@ -1,0 +1,65 @@
+{
+  "name": "coc-react-refactor",
+  "version": "0.1.0",
+  "description": "React refactor extension for coc.nvim",
+  "author": "Heyward Fann <fannheyward@gmail.com>",
+  "license": "MIT",
+  "main": "lib/index.js",
+  "keywords": [
+    "coc.nvim"
+  ],
+  "engines": {
+    "coc": "^0.0.78"
+  },
+  "scripts": {
+    "clean": "rimraf lib",
+    "watch": "webpack --watch",
+    "build": "webpack",
+    "prepare": "npm-run-all clean build"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.10.4",
+    "@babel/parser": "^7.10.4",
+    "@babel/template": "^7.10.4",
+    "@babel/traverse": "^7.10.4",
+    "@babel/types": "^7.10.4",
+    "@types/node": "^14.0.13",
+    "@typescript-eslint/eslint-plugin": "^3.5.0",
+    "@typescript-eslint/parser": "^3.5.0",
+    "coc.nvim": "^0.0.77",
+    "eslint": "^7.3.1",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "lines-and-columns": "^1.1.6",
+    "lodash.pickby": "^4.6.0",
+    "npm-run-all": "^4.1.5",
+    "prettier": "^2.0.5",
+    "rimraf": "^3.0.2",
+    "ts-loader": "^7.0.5",
+    "typescript": "^3.9.5",
+    "vscode-languageserver-protocol": "^3.15.3",
+    "webpack": "^4.43.0",
+    "webpack-cli": "^3.3.11"
+  },
+  "activationEvents": [
+    "workspaceContains:package.json"
+  ],
+  "prettier": {
+    "singleQuote": true,
+    "printWidth": 120,
+    "semi": true
+  },
+  "contributes": {
+    "configuration": {
+      "type": "object",
+      "title": "coc-react-refactor configuration",
+      "properties": {}
+    },
+    "commands": [
+      {
+        "command": "react-refactor.extractToFunction",
+        "title": "Extract JSX to function"
+      }
+    ]
+  }
+}
