@@ -4,6 +4,8 @@ React refactor extension for coc.nvim, forked from [vscode-react-refactor](https
 
 _This extension is sponsored by [@James Zhang](https://github.com/vfbiby) for developing, thank you._
 
+![coc-react-refactor](https://user-images.githubusercontent.com/345274/86444407-48cbdd80-bd43-11ea-84df-32a195c9d5e8.gif)
+
 ## Install
 
 `:CocInstall coc-react-refactor`
