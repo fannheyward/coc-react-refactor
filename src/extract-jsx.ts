@@ -21,7 +21,28 @@ import pickBy = require('lodash.pickby');
  */
 export const extractToFunction = async () => {
   try {
-    await extractAndReplaceSelection();
+    const name = await askForName();
+    if (!name) return;
+
+    const doc = await workspace.document;
+    const mode = await workspace.nvim.call('visualmode');
+    const range = await workspace.getSelectedRange(mode, doc);
+    if (!range) return;
+
+    const documentText = doc.textDocument.getText();
+    const [start, end] = getIndexesForSelection(documentText, range);
+    const result = executeCodeAction(name, documentText, start, end);
+    if (!result) {
+      workspace.showMessage('Extract JSX to function failed', 'error');
+      return;
+    }
+
+    const edits: TextEdit[] = [
+      TextEdit.replace(range, result.replaceJSXCode),
+      TextEdit.insert(Position.create(result.insertAt, 0), result.componentCode + '\n\n'),
+    ];
+
+    await doc.applyEdits(edits);
     await commands.executeCommand('editor.action.format');
   } catch (error) {
     console.error('Extract JSX to function:', error);
