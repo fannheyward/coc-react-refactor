@@ -13,6 +13,7 @@
   },
   "scripts": {
     "clean": "rimraf lib",
+    "lint": "eslint src --ext ts",
     "watch": "webpack --watch",
     "build": "webpack",
     "prepare": "npm-run-all clean build"
