@@ -1,5 +1,4 @@
-import { CodeActionProvider, commands, ExtensionContext, languages } from 'coc.nvim';
-import { Command, Range, TextDocument } from 'vscode-languageserver-protocol';
+import { CodeActionProvider, Command, commands, ExtensionContext, languages, Range, TextDocument } from 'coc.nvim';
 import { isJSX } from './ast';
 import { extractToFile, extractToFunction } from './extract-jsx';
 

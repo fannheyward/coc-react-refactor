@@ -1,4 +1,4 @@
-import { workspace } from 'coc.nvim';
+import { window } from 'coc.nvim';
 
 const capitalizeFirstLetter = (string: string) => string.charAt(0).toUpperCase() + string.slice(1);
 
@@ -9,7 +9,7 @@ const normalizeComponentName = (name: string) =>
     .join('');
 
 export const askForName = async () => {
-  const name = await workspace.requestInput('Component name');
+  const name = await window.requestInput('Component name');
   if (!name) return false;
 
   return normalizeComponentName(name);

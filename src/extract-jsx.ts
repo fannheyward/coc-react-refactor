@@ -1,10 +1,20 @@
 import traverse, { NodePath } from '@babel/traverse';
 import * as t from '@babel/types';
-import { commands, Uri, workspace } from 'coc.nvim';
+import {
+  commands,
+  CreateFile,
+  Position,
+  Range,
+  TextDocumentEdit,
+  TextEdit,
+  Uri,
+  window,
+  workspace,
+  WorkspaceEdit,
+} from 'coc.nvim';
 import * as fs from 'fs';
 import LinesAndColumns from 'lines-and-columns';
 import * as path from 'path';
-import { CreateFile, Position, Range, TextDocumentEdit, TextEdit, WorkspaceEdit } from 'vscode-languageserver-protocol';
 import {
   codeFromNode,
   codeToAst,
@@ -36,7 +46,7 @@ export const extractToFunction = async () => {
     const [start, end] = getIndexesForSelection(documentText, range);
     const result = executeCodeAction(name, documentText, start, end);
     if (!result) {
-      workspace.showMessage('Extract JSX to function failed', 'error');
+      window.showMessage('Extract JSX to function failed', 'error');
       return;
     }
 
@@ -49,7 +59,7 @@ export const extractToFunction = async () => {
     await commands.executeCommand('editor.action.format');
   } catch (error) {
     console.error('Extract JSX to function:', error);
-    workspace.showMessage('Extract JSX to function failed', 'error');
+    window.showMessage('Extract JSX to function failed', 'error');
   }
 };
 
@@ -73,7 +83,7 @@ export const extractToFile = async () => {
     const documentDir = path.dirname(Uri.parse(doc.uri).fsPath);
     const newFilePath = path.join(documentDir, name + fileTypeMap[doc.filetype]);
     if (fs.existsSync(newFilePath)) {
-      workspace.showMessage(`${newFilePath} exists`, 'error');
+      window.showMessage(`${newFilePath} exists`, 'error');
       return;
     }
 
@@ -85,16 +95,20 @@ export const extractToFile = async () => {
     const [start, end] = getIndexesForSelection(documentText, range);
     const result = executeCodeAction(name, documentText, start, end, true);
     if (!result) {
-      workspace.showMessage(`Extract to file failed`, 'error');
+      window.showMessage(`Extract to file failed`, 'error');
       return;
     }
 
     const newFileUri = Uri.parse(newFilePath).toString();
-    const createFile = CreateFile.create(newFileUri);
-    const replaceEdit = TextDocumentEdit.create(doc.textDocument, [TextEdit.replace(range, result.replaceJSXCode)]);
-    const importEdit = TextDocumentEdit.create(doc.textDocument, [
-      TextEdit.insert(Position.create(0, 0), `import { ${name} } from './${name}';\n`),
-    ]);
+    const createFile: CreateFile = { kind: 'create', uri: newFileUri };
+    const replaceEdit: TextDocumentEdit = {
+      textDocument: doc.textDocument,
+      edits: [TextEdit.replace(range, result.replaceJSXCode)],
+    };
+    const importEdit: TextDocumentEdit = {
+      textDocument: doc.textDocument,
+      edits: [TextEdit.insert(Position.create(0, 0), `import { ${name} } from './${name}';\n`)],
+    };
     const edit: WorkspaceEdit = {
       documentChanges: [createFile, replaceEdit, importEdit],
     };
@@ -108,7 +122,7 @@ export const extractToFile = async () => {
     ensureReactIsImported();
   } catch (error) {
     console.error(`Extract to file:`, error);
-    workspace.showMessage(`Extract to file failed`, 'error');
+    window.showMessage(`Extract to file failed`, 'error');
   }
 };
 
