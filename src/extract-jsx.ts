@@ -93,7 +93,8 @@ export const extractToFile = async () => {
 
     const documentText = doc.textDocument.getText();
     const [start, end] = getIndexesForSelection(documentText, range);
-    const result = executeCodeAction(name, documentText, start, end, true);
+    const produceClass = workspace.getConfiguration('react-refactor').get('produceClass', true);
+    const result = executeCodeAction(name, documentText, start, end, produceClass);
     if (!result) {
       window.showMessage(`Extract to file failed`, 'error');
       return;

@@ -17,6 +17,10 @@ xmap <leader>a  <Plug>(coc-codeaction-selected)
 nmap <leader>a  <Plug>(coc-codeaction-selected)
 ```
 
+## Configuration
+
+- `react-refactor.produceClass`: Create a class-based component, will create a function component when disabled, only works for `Extract to file`, default `true`
+
 ## License
 
 MIT

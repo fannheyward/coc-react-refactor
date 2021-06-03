@@ -50,7 +50,13 @@
     "configuration": {
       "type": "object",
       "title": "coc-react-refactor configuration",
-      "properties": {}
+      "properties": {
+        "react-refactor.produceClass": {
+          "type": "boolean",
+          "default": true,
+          "markdownDescription": "Create a class-based component, will create a function component when disabled, only works for `Extract to file`"
+        }
+      }
     },
     "commands": [
       {
