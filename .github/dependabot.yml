@@ -1,0 +1,17 @@
+version: 2
+updates:
+- package-ecosystem: npm
+  directory: "/"
+  schedule:
+    interval: monthly
+    time: "21:00"
+  open-pull-requests-limit: 10
+  reviewers:
+  - fannheyward
+  ignore:
+  - dependency-name: "@babel/types"
+    versions:
+    - 7.13.0
+  - dependency-name: "@babel/parser"
+    versions:
+    - 7.13.4
